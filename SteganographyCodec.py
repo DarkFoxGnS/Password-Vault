@@ -9,6 +9,7 @@ def write(fileName: str, targetName: str, data: bytes) -> None:
         targetName: The name of the target image.
         data: A byte array which will be encoded into the image.
     """
+    print(data,"\n",data.hex())
     with Image.open(fileName) as sourceFile:
         pixels = sourceFile.load()
         width,height = sourceFile.size
@@ -20,9 +21,8 @@ def write(fileName: str, targetName: str, data: bytes) -> None:
         rgbSwitch = 0
         bitOffset = 0
         for i in range(len(data)*8):
-            bitValue = (data[i//8] & (1<<(bitOffset%8))) > 1
+            bitValue = (data[i//8] & (1<<(bitOffset%8))) > 0
             originalPixelValue = list(pixels[i//3%width,i//3//width])
-            
             originalPixelValue[rgbSwitch%3] = (originalPixelValue[rgbSwitch%3] & ~(1 << 0)) | ((bitValue & 1) << 0)
 
             pixels[i//3%width,i//3//width] = tuple(originalPixelValue)
@@ -61,12 +61,12 @@ if __name__ == "__main__":
     choice = input("(W)rite or (R)ead: ")
     match(choice):
         case "w" | "W":
-            filename = input("File to open: ")
-            text = input("Data to encode into file: ")
-            text += b"\x00".decode()
-
-            for i in text.encode():
-                print(format(i,"08b"))
+            # filename = input("File to open: ")
+            # text = input("Data to encode into file: ")
+            # text += b"\x00".decode()
+            
+            filename = "fox.png"
+            text = "Hello World"
 
             write(filename,f"encoded-{filename}",text.encode())
         case "r" | "R":
