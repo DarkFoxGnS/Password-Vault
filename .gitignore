@@ -6,6 +6,8 @@ __pycache__/
 # Custom 
 temp.py
 *.png
+*.mockup
+
 # C extensions
 *.so
 
