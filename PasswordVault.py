@@ -1,12 +1,29 @@
 import UserInterface as ui
-from UserInterface import UIObject
+import curses
+
+UI_CONTAINER = None
+UI_SELECTABLES = []
+SELECTED = 0
+
 def init():
     ui.init()
     
-def update():
+    global UI_CONTAINER, UI_SELECTABLES
+    UI_CONTAINER, UI_SELECTABLES = ui.drawMainMenu()
+    
+    update()
 
+def update():
+    
+    UI_CONTAINER.draw()
     userInput = ui.SCREEN.getch()
-    print(userInput)
+    
+    if not UI_SELECTABLES[SELECTED].input(userInput):
+        match(userInput):
+            case curses.KEY_UP:
+                print("up was pressed")
+            case curses.KEY_DOWN:
+                print("down was pressed")
 
 def shutdown():
     ui.shutdown()
@@ -14,9 +31,3 @@ def shutdown():
 
 if __name__ == "__main__":
     SCREEN = init()
-    
-    objectArray = [UIObject(text="Option 1"),UIObject(y=1,text="Option 2")]
-    ui.draw(objectArray)
-    
-    update()
-    shutdown()
