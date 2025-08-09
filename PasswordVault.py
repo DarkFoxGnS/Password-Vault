@@ -1,53 +1,42 @@
-import UserInterface as ui
 import curses
 import time
+import sys
 
-UI_CONTAINER = None
-UI_SELECTABLES = []
-SELECTED = 0
 
-def init():
-    ui.init()
-    
-    global UI_CONTAINER, UI_SELECTABLES
-    UI_CONTAINER, UI_SELECTABLES = ui.drawMainMenu()
-    UI_SELECTABLES[SELECTED].selected = True
+def TUIInit():
+    import TerminalUserInterface as tui
+    tui.init()
+    tui.initScene(0)
+    TUIUpdate()
 
-    update()
-
-def update():
-    global SELECTED
-    
+def TUIUpdate():
+    import TerminalUserInterface as tui
     while True:
-        UI_CONTAINER.draw()
-        userInput = ui.SCREEN.getch()
+        frameStart = time.time()
+
+        tui.UI_SCENES[-1].update()
         
-        # if the user input was not consumed.
-        if not UI_SELECTABLES[SELECTED].input(userInput):
-            match(userInput):
-                case curses.KEY_UP:
-                    UI_SELECTABLES[SELECTED].selected = False
-                    SELECTED -= 1
-                    SELECTED %= len(UI_SELECTABLES)
-                    UI_SELECTABLES[SELECTED].selected = True
+        if not tui.WAIT_FOR_USER_INPUT:
+            time.sleep(0.016-(frameStart-time.time()))
 
-                case curses.KEY_DOWN:
-                    UI_SELECTABLES[SELECTED].selected = False
-                    SELECTED += 1
-                    SELECTED %= len(UI_SELECTABLES)
-                    UI_SELECTABLES[SELECTED].selected = True
-                case 113: # exit
-                    exit()
-                case curses.KEY_RESIZE:
-                    curses.ROWS,curses.COLS = ui.SCREEN.getmaxyx()
-                    ui.SCREEN.clear()
-
-            if not ui.WAIT_FOR_USER_INPUT:
-                time.sleep(0.016)
-
-def shutdown():
-    ui.shutdown()
+def TUIShutdown():
+    import TerminalUserInterface as tui
+    tui.shutdown()
     exit()
 
+def parseArgs():
+    for i in range(1,len(sys.argv)):
+        arg = sys.argv[i]
+        if arg.startswith("-h"):
+            #Headless start
+            pass
+        if arg.startswith("-t"):
+            #TUI start
+            TUIInit()
+        if arg.startswith("-q"):
+            #QT start
+            pass
+            
+
 if __name__ == "__main__":
-    SCREEN = init()
+    parseArgs()
