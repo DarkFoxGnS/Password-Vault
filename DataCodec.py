@@ -31,8 +31,8 @@ def argon2_hash(password: bytes, salt: bytes, hash_len=64) -> bytes:
     return low_level.hash_secret_raw(
         secret = password,
         salt = salt,
-        time_cost=3,
-        memory_cost = 65536,
+        time_cost=10,
+        memory_cost = 52428,
         parallelism = 2,
         hash_len = hash_len,
         type = low_level.Type.ID
