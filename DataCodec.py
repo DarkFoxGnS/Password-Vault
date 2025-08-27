@@ -1,6 +1,7 @@
 import hashlib
-from argon2 import low_level
 import hmac
+
+DEFSALT = "b2e753fe8a9c9aebd5fa299d9ee6f07d319f8e1b110cfcf1cd77daae00c8e83825076e46bb5255c501cfec7adf1923d0745ab09e48a1ed74c5817e699225cdd83"
 
 def hmac_salt (password: bytes, salt: bytes) -> bytes:
     """
@@ -16,7 +17,7 @@ def hmac_salt (password: bytes, salt: bytes) -> bytes:
     return hmac.new(password,salt, hashlib.sha256).digest()
 
 
-def argon2_hash(password: bytes, salt: bytes, hash_len=64) -> bytes:
+def argon2_hash(key: bytes, salt: bytes, hash_len=64) -> bytes:
     """
     Hashes using argon2.
     
@@ -28,82 +29,110 @@ def argon2_hash(password: bytes, salt: bytes, hash_len=64) -> bytes:
     Returns:
         Byte array of the hash.
     """
-    return low_level.hash_secret_raw(
-        secret = password,
+    from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
+    return Argon2id(
         salt = salt,
-        time_cost=10,
-        memory_cost = 52428,
-        parallelism = 2,
-        hash_len = hash_len,
-        type = low_level.Type.ID
-        )
+        length = 64,
+        iterations = 10,
+        lanes = 2,
+        memory_cost = 52428
+    ).derive(key)
 
-def make_password(password_bytes: bytes,length: int) -> bytes:
+def generate_CSPRNG(seed: bytes):
+    """
+    Generates a 64 byte long hash based pseudo-random byte sequence.
+
+    Params:
+        seed: Byte array of seed
+
+    Returns:
+        64 byte long byte sequence.
+    """
+    return bytes((a+b)%256 for a,b in zip(hashlib.sha256(seed).digest()+hashlib.sha256(seed).digest(),hashlib.sha512(seed).digest()))
+
+def make_password(password1: bytes, seed: bytes) -> bytes:
     """
     Generates the encryption password.
         
     Params:
-        password_bytes: Byte array of password.
+        password1: Byte array of password.
+        seed: Byte array of seed.
         length: The amound of passwords to generate. A length of 1 generates a 64 byte passwords.
 
     Returns:
         A byte array of password.
     """
+    
+    salt = generate_CSPRNG(seed)
 
-    encrypt_key = b""
-    # print("Generating key:")
-    for i in range(length):
-        key = argon2_hash(password_bytes,hmac_salt(password_bytes,bytes(f"salt{i}","UTF-8")))
-        # print(f"\tAppending key[{len(key)}]: ",key.hex())
-        encrypt_key+=key
-    # print(f"Using Encryption Key[{len(encrypt_key)}]: ",encrypt_key.hex())
-    return encrypt_key
+    return argon2_hash(password1,hmac_salt(password1,salt)),salt
 
-def encode(password: bytes, secret: bytes) -> bytes:
+def encode(password1: bytes, password2: bytes, secret: bytes) -> bytes:
     """
     Encodes the secret using the password.
     
     Params:
-        password: A byte array of the password.
+        password1: A byte array of the password.
+        password2: A byte array of the password (basis of salt). Can be None.
         secret: A byte array of the text to be encoded.
 
     Returns:
         Byte array containing the encoded data.
     """
+    
+    if password2 == None:
+        password2 = DEFSALT
 
-    if not isinstance(password,bytes):
-        raise Exception("The password must be bytes.")
+    password1 = password1.encode()
+    password2 = password2.encode()
     if not isinstance(secret,bytes):
         raise Exception("The secret must be bytes.")
-
-   # Create enough keys to encode the text.
-    encrypt_key = make_password(password, len(secret)//64+1)
     
-    # Mod encode the text
-    encoded = bytes((x+y)%256 for x,y in zip(secret,encrypt_key))
+    encoded = [0]*len(secret)
+    password, seed = make_password(password1, password2)
+    for i in range(len(secret)):
+        if i % len(password) == 0:
+            password,seed = make_password(password,seed)
+        encoded[i] = (secret[i]+password[i%len(password)])%256
     
-    return encoded
+    return bytes(encoded)
 
-def decode(password: bytes, secret: bytes) -> str:
+def decode(password1: bytes, password2: bytes, secret: bytes) -> str:
     """
     Decodes the secret using the provided password.
     
     Params:
-        password: A byte array of the password.
+        password1: A byte array of the password.
+        password1: A byte array of the password (basis of salt). Can be None.
         secret: A byte array representation of the secret.
 
     Returns:
         The decoded byte array.
     """
-    if not isinstance(password, bytes):
-        print("The password must be the type of bytes.")
+    if password2 == None:
+        password2 = DEFSALT
+
+    password1 = password1.encode()
+    password2 = password2.encode()
+
     if not isinstance(secret,bytes):
         print("The secret must be the type of bytes.")
 
-    # Create enough keys to decode the text.
-    encrypt_key = make_password(password, len(secret)//64+1)
+    decoded = [0]*len(secret)
+    password, seed = make_password(password1, password2)
     
-    # Mode decode the text
-    decoded = bytes((x-y)%256 for x,y in zip(secret,encrypt_key))
+    zeros = 0
 
-    return decoded
+    for i in range(len(secret)):
+        if i % len(password) == 0:
+            password,seed = make_password(password,seed)
+
+        decoded[i] = (secret[i]-password[i%len(password)])%256
+        if decoded[i] == 0:
+            zeros+=1
+            if zeros == 3:
+                return bytes(decoded[:i+1])
+        else:
+            zeros = 0
+    
+    return bytes(decoded)

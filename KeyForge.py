@@ -1,4 +1,4 @@
-def generate(characterSet: str, length: int) -> str:
+def generate(length: int,characterSet: str = None) -> str:
     """
     Generates a random text using the given character set.
 
@@ -13,12 +13,16 @@ def generate(characterSet: str, length: int) -> str:
         generate("abcdefghijklmnopqrstuvwxyz",20)
     """
     import secrets
-    password = ""
+    password = ['']*length
+
+    if characterSet == None:
+        import string
+        characterSet = string.ascii_letters+string.digits+string.punctuation
 
     for i in range(length):
-        password += secrets.choice(characterSet)
+        password[i] = secrets.choice(characterSet)
 
-    return password
+    return "".join(password)
 
 def generateCustom(textInput: str, length: int) -> str:
     """
@@ -32,7 +36,7 @@ def generateCustom(textInput: str, length: int) -> str:
         A string of the generated password.
 
     Example:
-        generateCustom("a-zA-Z0-9\\\-?!%/*+-",30)
+        generateCustom("a-zA-Z0-9\\\\-?!%/*+-",30)
     """
     import re
     characterSet = ""
@@ -46,4 +50,4 @@ def generateCustom(textInput: str, length: int) -> str:
             for i in range(ord(match[1]),ord(match[2])):
                 characterSet += chr(i)
     
-    return generate(characterSet, length)
+    return generate(length,characterSet)
