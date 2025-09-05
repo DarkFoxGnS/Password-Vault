@@ -1,6 +1,10 @@
 from KeyFile import KeyFile
 
-def main(command:str):
+def main(command:"array"):
+    if len(command) == 0:
+        print("Commands were not provided!")
+        exit()
+
     keyFile = KeyFile.getKeyFile()
     
     if command[0] == "keygen":
@@ -10,6 +14,8 @@ def main(command:str):
     if keyFile.path == None:
         print("Directory was not provided!\n\tUse -directory flag to provide a directory.\n\tFor example: -directory=passwords\\exampleDir")
         exit()
+    if keyFile.id == None:
+        print("ID was not provided!\n\tUse -id flag to provide the id.\n\tFor example: -id=5")
     if keyFile.password1 == None:
         print("Password1 was not provided!\n\t Use -password1 flag to provide a password.\n\tFor example: -password1=ExamplePassword123")
         exit()
@@ -28,6 +34,9 @@ def main(command:str):
         return
     if command[0] == "get":
         get(keyFile, command)
+        return
+    if command[0] == "del":
+        delete(keyFile, command)
         return
 
 def keyGen(command):
@@ -54,6 +63,20 @@ def add(keyFile: KeyFile, command: "array"):
     keyFile.encode()
     keyFile.saveFile()
 
+def delete(keyFile:KeyFile, command:"array"):
+    if len(command) != 2:
+        print("Invalid syntax%\nPlease use:\n\tdel <password_name>")
+        exit()
+    target = command[1]
+    data = keyFile.parse()
+    for passw in data:
+        if passw[0] == target:
+            data.remove(passw)
+
+    keyFile.serialize(data)
+    keyFile.encode()
+    keyFile.saveFile()
+
 def get(keyFile: KeyFile, command: "array"):
     if len(command) != 2:
         print("Invalid syntax!\n\tPlease use:\n\t\"get <Password name>\".")
@@ -73,7 +96,7 @@ def list(keyFile: KeyFile):
 def new(keyFile:KeyFile, command: "array"):
     import SteganographyCodec as sc
     import os
-    
+
     if len(command) != 3:
         print("Invalid syntax!\nPlease use:\n\tnew <original image> <number of password files>")
         exit()
@@ -92,7 +115,7 @@ def new(keyFile:KeyFile, command: "array"):
         if i == int(keyFile.id):
             keyFile.data = b"\0\0\0"
             keyFile.encode()
-            keyFile.saveFile()
+            sc.write(keyFile.data,origin,f"{keyFile.path}\\{keyFile.id}.png")
         else:
             sc.write(b"", origin, f"{keyFile.path}\\{i}.png")
         print(" Done")

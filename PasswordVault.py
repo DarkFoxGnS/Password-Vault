@@ -51,7 +51,7 @@ def parseArgs():
         keyFile = KeyFile.getKeyFile()
 
         if arg == "-h":
-            print("Hah")
+            print("TODO: Print Help over here")
             exit()
 
         if arg == "-headless":

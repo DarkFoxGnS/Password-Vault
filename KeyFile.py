@@ -53,7 +53,8 @@ class KeyFile():
             name = elem[0]
             pasw = elem[1]
             self.data+=name.encode()+b"\0"+pasw.encode()+b"\0\0"
-
+        if len(array) == 0:
+            self.data+=b"\0\0"
         self.data+=b"\0"
 
     def parse(self):
@@ -70,7 +71,8 @@ class KeyFile():
                     password.append(bytes(self.data[start:end]).decode())
                     start = end+1
                 if zeroCounter == 2:
-                    array.append(password)
+                    if len(password) == 2:
+                        array.append(password)
                     password = []
                     start = end+1
                 if zeroCounter == 3:
