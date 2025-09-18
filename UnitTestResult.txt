@@ -1,0 +1,15 @@
+Testing with 100 cycles.
+testKeyFileEncodeDecode (__main__.TestKeyFile.testKeyFileEncodeDecode) ... ok
+testKeyFileSerialize (__main__.TestKeyFile.testKeyFileSerialize) ... ok
+testEmptyData (__main__.TestStegonography.testEmptyData) ... ok
+testFullData (__main__.TestStegonography.testFullData) ... expected failure
+testRandomIntegerData (__main__.TestStegonography.testRandomIntegerData) ... ok
+testRandomStringData (__main__.TestStegonography.testRandomStringData) ... ok
+testEmptyData (__main__.TestTextCodec.testEmptyData) ... ok
+testOnlyPassword1 (__main__.TestTextCodec.testOnlyPassword1) ... ok
+testRandomStringData (__main__.TestTextCodec.testRandomStringData) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 4075.396s
+
+OK (expected failures=1)

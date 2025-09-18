@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 
-DEFSALT = "b2e753fe8a9c9aebd5fa299d9ee6f07d319f8e1b110cfcf1cd77daae00c8e83825076e46bb5255c501cfec7adf1923d0745ab09e48a1ed74c5817e699225cdd83"
+DEFSALT = "2e753fe8a9c9aebd5fa299d9ee6f07d319f8e1b110cfcf1cd77daae00c8e83825076e46bb5255c501cfec7adf1923d0745ab09e48a1ed74c5817e699225cdd83"
 
 def hmac_salt (password: bytes, salt: bytes) -> bytes:
     """

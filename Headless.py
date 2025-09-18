@@ -25,19 +25,16 @@ def main(command:"array"):
         return
     
     load(keyFile)
-
-    if command[0] == "list":
-        list(keyFile)
-        return
-    if command[0] == "add":
-        add(keyFile,command)
-        return
-    if command[0] == "get":
-        get(keyFile, command)
-        return
-    if command[0] == "del":
-        delete(keyFile, command)
-        return
+    
+    match(command[0]):
+        case "list":
+            list(keyFile)
+        case "add":
+            add(keyFile,command)
+        case "get":
+            get(keyFile, command)
+        case "del":
+            delete(keyFile, command)
 
 def keyGen(command):
     import KeyForge
